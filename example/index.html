@@ -1,0 +1,786 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Example Topical Authority Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FBF3F0;--card:#FFFFFF;--ink:#2E1A14;--muted:#9B857D;--line:#F4DFD6;
+--core:#8F3B23;--focus:#DE7356;--exp:#F2A78C;--peri:#FAD8CB;--accent:#DE7356;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.shell{max-width:1080px;margin:0 auto;padding:26px}
+.panel{background:linear-gradient(180deg,#FEF9F7,#FBF3F0);border:1px solid var(--line);border-radius:18px;padding:26px 28px;margin-bottom:20px}
+.eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:16px;height:1.5px;background:var(--accent);display:inline-block}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:40px;font-weight:700;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:13.5px;color:#79615A;max-width:640px;line-height:1.55}
+.stats{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 13px 12px}
+.sv{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:600;line-height:1.05;letter-spacing:-.01em}
+.sk{font-size:9.5px;color:var(--muted);margin-top:7px;display:flex;align-items:center;gap:5px;line-height:1.3}
+.sk em{font-style:normal;opacity:.7}
+.pip{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+h2{font-family:'Playfair Display',Georgia,serif;font-size:19px;font-weight:600;margin:2px 0 14px}
+.strats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.scard{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--sc);border-radius:11px;padding:14px 15px 15px;cursor:pointer;transition:box-shadow .12s,transform .12s;user-select:none}
+.scard:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(143,59,35,.10)}
+.scard.active{box-shadow:0 0 0 2px var(--sc) inset,0 4px 14px rgba(143,59,35,.14)}
+.scard.dim{opacity:.5}
+.stop{display:flex;justify-content:space-between;align-items:center}
+.tag{color:#fff;font-size:10px;font-weight:600;letter-spacing:.09em;padding:4px 9px;border-radius:6px}
+.tag.light{color:#2E1A14}
+.pct{font-size:12.5px;color:var(--muted);font-weight:600}
+.snum{font-family:'Playfair Display',Georgia,serif;font-size:27px;font-weight:700;margin-top:11px}
+.snum span{font-size:12px;font-family:'Inter';font-weight:400;color:var(--muted)}
+.sdesc{font-size:11px;color:var(--muted);margin-top:2px}
+.sbar{height:5px;background:#F7E7E0;border-radius:3px;margin-top:11px;overflow:hidden}
+.sbar span{display:block;height:100%;border-radius:3px}
+.plotwrap{position:relative}
+.legrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+.zlegend{display:flex;gap:16px}
+.zl{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#79615A}
+.zl .d{width:10px;height:10px;border-radius:50%}
+.seg{display:inline-flex;background:#F7E7E0;border-radius:9px;padding:3px;vertical-align:middle}
+.seg button{border:none;background:none;font-size:11px;color:#79615A;padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:500;font-family:'Inter'}
+.seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(143,59,35,.12);font-weight:600}
+.seglab{font-size:10.5px;color:var(--muted);margin-right:8px;align-self:center}
+.find{margin-left:8px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;font-size:11px;color:var(--ink);font-family:'Inter';background:#fff;width:150px;vertical-align:middle}
+.find:focus{outline:none;border-color:var(--accent)}
+.stage{display:flex;gap:10px;align-items:stretch}
+#plot{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+canvas{display:block;cursor:grab}
+.cbar{width:64px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:10px}
+.cbar .lbl{font-size:9.5px;color:var(--muted);margin-bottom:8px;text-align:center;line-height:1.3}
+.cbar .track{width:11px;height:300px;border-radius:6px;position:relative;background:linear-gradient(180deg,#8F3B23 0%,#DE7356 34%,#F2A78C 67%,#FAD8CB 100%);border:1px solid var(--line)}
+.cbar .tk{position:absolute;left:16px;font-size:9px;color:var(--muted);transform:translateY(-50%);white-space:nowrap}
+.count{font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px}
+.read{position:absolute;top:60px;right:80px;width:232px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 14px;box-shadow:0 8px 24px rgba(143,59,35,.12);font-size:11.5px;display:none;z-index:9}
+.read .u{font-weight:600;color:var(--accent);word-break:break-word;line-height:1.4;margin-bottom:8px;font-size:11px}
+.read .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed #F5E3DB;color:var(--muted)}
+.read .r:last-child{border:none}
+.read .r b{color:var(--ink);font-weight:600;text-align:right}
+.tools{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.tools button{background:#fff;border:1px solid var(--line);color:#79615A;font-size:11px;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:500;font-family:'Inter'}
+.tools button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tools button:hover{border-color:var(--accent)}
+.ranges{display:flex;gap:22px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.rg{display:flex;align-items:center;gap:9px;font-size:10.5px;color:var(--muted)}
+.rg input[type=range]{-webkit-appearance:none;appearance:none;width:120px;height:4px;background:#F7E7E0;border-radius:3px}
+.rg input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:pointer}
+.rg input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--accent);border:none;border-radius:50%;cursor:pointer}
+.sublegend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.sw{display:flex;align-items:center;gap:6px;font-size:11px;color:#79615A}
+.sw .c{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.foot{text-align:center;font-size:11px;color:var(--muted);padding:6px 0 2px}
+@media(max-width:920px){.stats{grid-template-columns:repeat(3,1fr)}.strats{grid-template-columns:repeat(2,1fr)}.cbar{display:none}.read{right:16px;top:16px}}
+</style></head><body>
+<div class="shell">
+  <div class="panel">
+    <div class="eyebrow">Content Portfolio Diagnostic</div>
+    <h1>Example Topical Authority Map</h1>
+    <div class="lede">All 168 pages embedded and placed by semantic distance from the cluster centre. Zones sort pages from Centre to Cluster B. Bubble size shows node weight. Colour shows topic cluster. Tabs re-derived on node type and search intent.</div>
+    <div class="stats">
+      <div class="stat"><div class="sv">8</div><div class="sk"><span class="pip"></span>Topic clusters <em>21 nodes each</em></div></div>
+      <div class="stat"><div class="sv">168</div><div class="sk"><span class="pip"></span>Nodes mapped</div></div>
+      <div class="stat"><div class="sv">160</div><div class="sk"><span class="pip"></span>Supporting articles</div></div>
+      <div class="stat"><div class="sv">8</div><div class="sk"><span class="pip"></span>Pillar pages</div></div>
+      <div class="stat"><div class="sv">4</div><div class="sk"><span class="pip"></span>Role tiers</div></div>
+      <div class="stat"><div class="sv">97</div><div class="sk"><span class="pip"></span>Informational intent</div></div>
+      <div class="stat"><div class="sv">71</div><div class="sk"><span class="pip"></span>Commercial intent</div></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Cluster &times; Role</h2>
+    <div class="strats" id="topicCards"></div>
+  </div>
+  <div class="panel plotwrap">
+    <div class="legrow">
+      <div class="zlegend">
+        <div class="zl"><span class="d" style="background:var(--core)"></span>Centre</div>
+        <div class="zl"><span class="d" style="background:var(--focus)"></span>Hub</div>
+        <div class="zl"><span class="d" style="background:var(--exp)"></span>Cluster A</div>
+        <div class="zl"><span class="d" style="background:var(--peri)"></span>Cluster B</div>
+      </div>
+      <div><span class="seglab">Show</span><span class="seg">
+        <button class="on" data-f="all" onclick="setFilt('all')">All nodes</button>
+        <button data-f="pillar" onclick="setFilt('pillar')">Pillars</button>
+        <button data-f="article" onclick="setFilt('article')">Articles</button>
+      </span><input class="find" id="searchInput" placeholder="Search nodes&hellip;"><div class="count" id="count"></div></div>
+    </div>
+    <div class="stage">
+      <div id="plot"><canvas id="canvas"></canvas></div>
+      <div class="cbar"><div class="lbl">Role<br>tier</div><div class="track" id="track"></div></div>
+    </div>
+    <div class="sublegend" id="sublegend"></div>
+    <div class="read" id="read"></div>
+    <div class="tools">
+      <button class="on" id="bLabels" onclick="tglLabels()">Labels: on</button>
+      <button class="on" id="bBridges" onclick="tglBridges()">Bridges: on</button>
+      <button class="on" id="bZones" onclick="tglZones()">Zones: on</button>
+      <button class="on" id="bCentre" onclick="tglCentre()">Centre ring: on</button>
+      <button onclick="resetView()">Reset view</button>
+      <button onclick="exportCSV()">Export CSV</button>
+    </div>
+    <div class="ranges">
+      <label class="rg">Node size <input type="range" id="nodeSize" min="3" max="14" value="6"></label>
+      <label class="rg">Cluster spread <input type="range" id="clusterSpread" min="50" max="160" value="100"></label>
+    </div>
+  </div>
+  <div class="foot">Radius = cosine distance to cluster centre &middot; angle groups topical clusters &middot; colour = topic cluster &middot; polar layout</div>
+</div>
+<script>
+const pillars = [
+    {
+        id: 'topic-1',
+        name: 'Topic 1',
+        color: '#DE7356',
+        role: 'semantic-center',
+        roleLabel: 'Centre',
+        position: { x: 0, y: 0 },
+        articles: [
+            { title: 'Topic 1: Complete Guide', type: 'pillar', keywords: ['topic 1', 'topic 1 overview'], intent: 'informational' },
+            { title: 'Topic 1 · Article 1', type: 'article', keywords: ['topic 1 keyword 1', 'topic 1 concept b'], intent: 'informational' },
+            { title: 'Topic 1 · Article 2', type: 'article', keywords: ['topic 1 keyword 2', 'topic 1 concept c'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 3', type: 'article', keywords: ['topic 1 keyword 3', 'topic 1 concept a'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 4', type: 'article', keywords: ['topic 1 keyword 4', 'topic 1 concept b'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 5', type: 'article', keywords: ['topic 1 keyword 5', 'topic 1 concept c'], intent: 'informational' },
+            { title: 'Topic 1 · Article 6', type: 'article', keywords: ['topic 1 keyword 6', 'topic 1 concept a'], intent: 'informational' },
+            { title: 'Topic 1 · Article 7', type: 'article', keywords: ['topic 1 keyword 7', 'topic 1 concept b'], intent: 'informational' },
+            { title: 'Topic 1 · Article 8', type: 'article', keywords: ['topic 1 keyword 8', 'topic 1 concept c'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 9', type: 'article', keywords: ['topic 1 keyword 9', 'topic 1 concept a'], intent: 'informational' },
+            { title: 'Topic 1 · Article 10', type: 'article', keywords: ['topic 1 keyword 10', 'topic 1 concept b'], intent: 'informational' },
+            { title: 'Topic 1 · Article 11', type: 'article', keywords: ['topic 1 keyword 11', 'topic 1 concept c'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 12', type: 'article', keywords: ['topic 1 keyword 12', 'topic 1 concept a'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 13', type: 'article', keywords: ['topic 1 keyword 13', 'topic 1 concept b'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 14', type: 'article', keywords: ['topic 1 keyword 14', 'topic 1 concept c'], intent: 'informational' },
+            { title: 'Topic 1 · Article 15', type: 'article', keywords: ['topic 1 keyword 15', 'topic 1 concept a'], intent: 'commercial' },
+            { title: 'Topic 1 · Article 16', type: 'article', keywords: ['topic 1 keyword 16', 'topic 1 concept b'], intent: 'informational' },
+            { title: 'Topic 1 · Article 17', type: 'article', keywords: ['topic 1 keyword 17', 'topic 1 concept c'], intent: 'informational' },
+            { title: 'Topic 1 · Article 18', type: 'article', keywords: ['topic 1 keyword 18', 'topic 1 concept a'], intent: 'informational' },
+            { title: 'Topic 1 · Article 19', type: 'article', keywords: ['topic 1 keyword 19', 'topic 1 concept b'], intent: 'informational' },
+            { title: 'Topic 1 · Article 20', type: 'article', keywords: ['topic 1 keyword 20', 'topic 1 concept c'], intent: 'informational' }
+        ]
+    },
+    {
+        id: 'topic-2',
+        name: 'Topic 2',
+        color: '#C7295D',
+        role: 'category-hub',
+        roleLabel: 'Hub',
+        position: { x: 0, y: -240 },
+        articles: [
+            { title: 'Topic 2: Complete Guide', type: 'pillar', keywords: ['topic 2', 'topic 2 overview'], intent: 'informational' },
+            { title: 'Topic 2 · Article 1', type: 'article', keywords: ['topic 2 keyword 1', 'topic 2 concept b'], intent: 'informational' },
+            { title: 'Topic 2 · Article 2', type: 'article', keywords: ['topic 2 keyword 2', 'topic 2 concept c'], intent: 'informational' },
+            { title: 'Topic 2 · Article 3', type: 'article', keywords: ['topic 2 keyword 3', 'topic 2 concept a'], intent: 'informational' },
+            { title: 'Topic 2 · Article 4', type: 'article', keywords: ['topic 2 keyword 4', 'topic 2 concept b'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 5', type: 'article', keywords: ['topic 2 keyword 5', 'topic 2 concept c'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 6', type: 'article', keywords: ['topic 2 keyword 6', 'topic 2 concept a'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 7', type: 'article', keywords: ['topic 2 keyword 7', 'topic 2 concept b'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 8', type: 'article', keywords: ['topic 2 keyword 8', 'topic 2 concept c'], intent: 'informational' },
+            { title: 'Topic 2 · Article 9', type: 'article', keywords: ['topic 2 keyword 9', 'topic 2 concept a'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 10', type: 'article', keywords: ['topic 2 keyword 10', 'topic 2 concept b'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 11', type: 'article', keywords: ['topic 2 keyword 11', 'topic 2 concept c'], intent: 'informational' },
+            { title: 'Topic 2 · Article 12', type: 'article', keywords: ['topic 2 keyword 12', 'topic 2 concept a'], intent: 'informational' },
+            { title: 'Topic 2 · Article 13', type: 'article', keywords: ['topic 2 keyword 13', 'topic 2 concept b'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 14', type: 'article', keywords: ['topic 2 keyword 14', 'topic 2 concept c'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 15', type: 'article', keywords: ['topic 2 keyword 15', 'topic 2 concept a'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 16', type: 'article', keywords: ['topic 2 keyword 16', 'topic 2 concept b'], intent: 'informational' },
+            { title: 'Topic 2 · Article 17', type: 'article', keywords: ['topic 2 keyword 17', 'topic 2 concept c'], intent: 'commercial' },
+            { title: 'Topic 2 · Article 18', type: 'article', keywords: ['topic 2 keyword 18', 'topic 2 concept a'], intent: 'informational' },
+            { title: 'Topic 2 · Article 19', type: 'article', keywords: ['topic 2 keyword 19', 'topic 2 concept b'], intent: 'informational' },
+            { title: 'Topic 2 · Article 20', type: 'article', keywords: ['topic 2 keyword 20', 'topic 2 concept c'], intent: 'commercial' }
+        ]
+    },
+    {
+        id: 'topic-3',
+        name: 'Topic 3',
+        color: '#5DC729',
+        role: 'cluster-group-a',
+        roleLabel: 'Cluster A',
+        position: { x: -260, y: -60 },
+        articles: [
+            { title: 'Topic 3: Complete Guide', type: 'pillar', keywords: ['topic 3', 'topic 3 overview'], intent: 'informational' },
+            { title: 'Topic 3 · Article 1', type: 'article', keywords: ['topic 3 keyword 1', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 2', type: 'article', keywords: ['topic 3 keyword 2', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 3', type: 'article', keywords: ['topic 3 keyword 3', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 4', type: 'article', keywords: ['topic 3 keyword 4', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 5', type: 'article', keywords: ['topic 3 keyword 5', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 6', type: 'article', keywords: ['topic 3 keyword 6', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 7', type: 'article', keywords: ['topic 3 keyword 7', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 8', type: 'article', keywords: ['topic 3 keyword 8', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 9', type: 'article', keywords: ['topic 3 keyword 9', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 10', type: 'article', keywords: ['topic 3 keyword 10', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 11', type: 'article', keywords: ['topic 3 keyword 11', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 12', type: 'article', keywords: ['topic 3 keyword 12', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 13', type: 'article', keywords: ['topic 3 keyword 13', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 14', type: 'article', keywords: ['topic 3 keyword 14', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 15', type: 'article', keywords: ['topic 3 keyword 15', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 16', type: 'article', keywords: ['topic 3 keyword 16', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 17', type: 'article', keywords: ['topic 3 keyword 17', 'topic 3 concept c'], intent: 'informational' },
+            { title: 'Topic 3 · Article 18', type: 'article', keywords: ['topic 3 keyword 18', 'topic 3 concept a'], intent: 'informational' },
+            { title: 'Topic 3 · Article 19', type: 'article', keywords: ['topic 3 keyword 19', 'topic 3 concept b'], intent: 'informational' },
+            { title: 'Topic 3 · Article 20', type: 'article', keywords: ['topic 3 keyword 20', 'topic 3 concept c'], intent: 'informational' }
+        ]
+    },
+    {
+        id: 'topic-4',
+        name: 'Topic 4',
+        color: '#7329C7',
+        role: 'cluster-group-a',
+        roleLabel: 'Cluster A',
+        position: { x: -160, y: 200 },
+        articles: [
+            { title: 'Topic 4: Complete Guide', type: 'pillar', keywords: ['topic 4', 'topic 4 overview'], intent: 'informational' },
+            { title: 'Topic 4 · Article 1', type: 'article', keywords: ['topic 4 keyword 1', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 2', type: 'article', keywords: ['topic 4 keyword 2', 'topic 4 concept c'], intent: 'commercial' },
+            { title: 'Topic 4 · Article 3', type: 'article', keywords: ['topic 4 keyword 3', 'topic 4 concept a'], intent: 'commercial' },
+            { title: 'Topic 4 · Article 4', type: 'article', keywords: ['topic 4 keyword 4', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 5', type: 'article', keywords: ['topic 4 keyword 5', 'topic 4 concept c'], intent: 'informational' },
+            { title: 'Topic 4 · Article 6', type: 'article', keywords: ['topic 4 keyword 6', 'topic 4 concept a'], intent: 'informational' },
+            { title: 'Topic 4 · Article 7', type: 'article', keywords: ['topic 4 keyword 7', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 8', type: 'article', keywords: ['topic 4 keyword 8', 'topic 4 concept c'], intent: 'informational' },
+            { title: 'Topic 4 · Article 9', type: 'article', keywords: ['topic 4 keyword 9', 'topic 4 concept a'], intent: 'informational' },
+            { title: 'Topic 4 · Article 10', type: 'article', keywords: ['topic 4 keyword 10', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 11', type: 'article', keywords: ['topic 4 keyword 11', 'topic 4 concept c'], intent: 'commercial' },
+            { title: 'Topic 4 · Article 12', type: 'article', keywords: ['topic 4 keyword 12', 'topic 4 concept a'], intent: 'informational' },
+            { title: 'Topic 4 · Article 13', type: 'article', keywords: ['topic 4 keyword 13', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 14', type: 'article', keywords: ['topic 4 keyword 14', 'topic 4 concept c'], intent: 'informational' },
+            { title: 'Topic 4 · Article 15', type: 'article', keywords: ['topic 4 keyword 15', 'topic 4 concept a'], intent: 'informational' },
+            { title: 'Topic 4 · Article 16', type: 'article', keywords: ['topic 4 keyword 16', 'topic 4 concept b'], intent: 'informational' },
+            { title: 'Topic 4 · Article 17', type: 'article', keywords: ['topic 4 keyword 17', 'topic 4 concept c'], intent: 'informational' },
+            { title: 'Topic 4 · Article 18', type: 'article', keywords: ['topic 4 keyword 18', 'topic 4 concept a'], intent: 'informational' },
+            { title: 'Topic 4 · Article 19', type: 'article', keywords: ['topic 4 keyword 19', 'topic 4 concept b'], intent: 'commercial' },
+            { title: 'Topic 4 · Article 20', type: 'article', keywords: ['topic 4 keyword 20', 'topic 4 concept c'], intent: 'informational' }
+        ]
+    },
+    {
+        id: 'topic-5',
+        name: 'Topic 5',
+        color: '#C77329',
+        role: 'cluster-group-a',
+        roleLabel: 'Cluster A',
+        position: { x: 160, y: 200 },
+        articles: [
+            { title: 'Topic 5: Complete Guide', type: 'pillar', keywords: ['topic 5', 'topic 5 overview'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 1', type: 'article', keywords: ['topic 5 keyword 1', 'topic 5 concept b'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 2', type: 'article', keywords: ['topic 5 keyword 2', 'topic 5 concept c'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 3', type: 'article', keywords: ['topic 5 keyword 3', 'topic 5 concept a'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 4', type: 'article', keywords: ['topic 5 keyword 4', 'topic 5 concept b'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 5', type: 'article', keywords: ['topic 5 keyword 5', 'topic 5 concept c'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 6', type: 'article', keywords: ['topic 5 keyword 6', 'topic 5 concept a'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 7', type: 'article', keywords: ['topic 5 keyword 7', 'topic 5 concept b'], intent: 'informational' },
+            { title: 'Topic 5 · Article 8', type: 'article', keywords: ['topic 5 keyword 8', 'topic 5 concept c'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 9', type: 'article', keywords: ['topic 5 keyword 9', 'topic 5 concept a'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 10', type: 'article', keywords: ['topic 5 keyword 10', 'topic 5 concept b'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 11', type: 'article', keywords: ['topic 5 keyword 11', 'topic 5 concept c'], intent: 'informational' },
+            { title: 'Topic 5 · Article 12', type: 'article', keywords: ['topic 5 keyword 12', 'topic 5 concept a'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 13', type: 'article', keywords: ['topic 5 keyword 13', 'topic 5 concept b'], intent: 'informational' },
+            { title: 'Topic 5 · Article 14', type: 'article', keywords: ['topic 5 keyword 14', 'topic 5 concept c'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 15', type: 'article', keywords: ['topic 5 keyword 15', 'topic 5 concept a'], intent: 'informational' },
+            { title: 'Topic 5 · Article 16', type: 'article', keywords: ['topic 5 keyword 16', 'topic 5 concept b'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 17', type: 'article', keywords: ['topic 5 keyword 17', 'topic 5 concept c'], intent: 'commercial' },
+            { title: 'Topic 5 · Article 18', type: 'article', keywords: ['topic 5 keyword 18', 'topic 5 concept a'], intent: 'informational' },
+            { title: 'Topic 5 · Article 19', type: 'article', keywords: ['topic 5 keyword 19', 'topic 5 concept b'], intent: 'informational' },
+            { title: 'Topic 5 · Article 20', type: 'article', keywords: ['topic 5 keyword 20', 'topic 5 concept c'], intent: 'commercial' }
+        ]
+    },
+    {
+        id: 'topic-6',
+        name: 'Topic 6',
+        color: '#29C773',
+        role: 'cluster-group-a',
+        roleLabel: 'Cluster A',
+        position: { x: 260, y: -60 },
+        articles: [
+            { title: 'Topic 6: Complete Guide', type: 'pillar', keywords: ['topic 6', 'topic 6 overview'], intent: 'informational' },
+            { title: 'Topic 6 · Article 1', type: 'article', keywords: ['topic 6 keyword 1', 'topic 6 concept b'], intent: 'informational' },
+            { title: 'Topic 6 · Article 2', type: 'article', keywords: ['topic 6 keyword 2', 'topic 6 concept c'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 3', type: 'article', keywords: ['topic 6 keyword 3', 'topic 6 concept a'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 4', type: 'article', keywords: ['topic 6 keyword 4', 'topic 6 concept b'], intent: 'informational' },
+            { title: 'Topic 6 · Article 5', type: 'article', keywords: ['topic 6 keyword 5', 'topic 6 concept c'], intent: 'informational' },
+            { title: 'Topic 6 · Article 6', type: 'article', keywords: ['topic 6 keyword 6', 'topic 6 concept a'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 7', type: 'article', keywords: ['topic 6 keyword 7', 'topic 6 concept b'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 8', type: 'article', keywords: ['topic 6 keyword 8', 'topic 6 concept c'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 9', type: 'article', keywords: ['topic 6 keyword 9', 'topic 6 concept a'], intent: 'informational' },
+            { title: 'Topic 6 · Article 10', type: 'article', keywords: ['topic 6 keyword 10', 'topic 6 concept b'], intent: 'informational' },
+            { title: 'Topic 6 · Article 11', type: 'article', keywords: ['topic 6 keyword 11', 'topic 6 concept c'], intent: 'informational' },
+            { title: 'Topic 6 · Article 12', type: 'article', keywords: ['topic 6 keyword 12', 'topic 6 concept a'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 13', type: 'article', keywords: ['topic 6 keyword 13', 'topic 6 concept b'], intent: 'informational' },
+            { title: 'Topic 6 · Article 14', type: 'article', keywords: ['topic 6 keyword 14', 'topic 6 concept c'], intent: 'informational' },
+            { title: 'Topic 6 · Article 15', type: 'article', keywords: ['topic 6 keyword 15', 'topic 6 concept a'], intent: 'informational' },
+            { title: 'Topic 6 · Article 16', type: 'article', keywords: ['topic 6 keyword 16', 'topic 6 concept b'], intent: 'informational' },
+            { title: 'Topic 6 · Article 17', type: 'article', keywords: ['topic 6 keyword 17', 'topic 6 concept c'], intent: 'informational' },
+            { title: 'Topic 6 · Article 18', type: 'article', keywords: ['topic 6 keyword 18', 'topic 6 concept a'], intent: 'informational' },
+            { title: 'Topic 6 · Article 19', type: 'article', keywords: ['topic 6 keyword 19', 'topic 6 concept b'], intent: 'commercial' },
+            { title: 'Topic 6 · Article 20', type: 'article', keywords: ['topic 6 keyword 20', 'topic 6 concept c'], intent: 'informational' }
+        ]
+    },
+    {
+        id: 'topic-7',
+        name: 'Topic 7',
+        color: '#C7299D',
+        role: 'cluster-group-b',
+        roleLabel: 'Cluster B',
+        position: { x: -120, y: -140 },
+        articles: [
+            { title: 'Topic 7: Complete Guide', type: 'pillar', keywords: ['topic 7', 'topic 7 overview'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 1', type: 'article', keywords: ['topic 7 keyword 1', 'topic 7 concept b'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 2', type: 'article', keywords: ['topic 7 keyword 2', 'topic 7 concept c'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 3', type: 'article', keywords: ['topic 7 keyword 3', 'topic 7 concept a'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 4', type: 'article', keywords: ['topic 7 keyword 4', 'topic 7 concept b'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 5', type: 'article', keywords: ['topic 7 keyword 5', 'topic 7 concept c'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 6', type: 'article', keywords: ['topic 7 keyword 6', 'topic 7 concept a'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 7', type: 'article', keywords: ['topic 7 keyword 7', 'topic 7 concept b'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 8', type: 'article', keywords: ['topic 7 keyword 8', 'topic 7 concept c'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 9', type: 'article', keywords: ['topic 7 keyword 9', 'topic 7 concept a'], intent: 'informational' },
+            { title: 'Topic 7 · Article 10', type: 'article', keywords: ['topic 7 keyword 10', 'topic 7 concept b'], intent: 'informational' },
+            { title: 'Topic 7 · Article 11', type: 'article', keywords: ['topic 7 keyword 11', 'topic 7 concept c'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 12', type: 'article', keywords: ['topic 7 keyword 12', 'topic 7 concept a'], intent: 'informational' },
+            { title: 'Topic 7 · Article 13', type: 'article', keywords: ['topic 7 keyword 13', 'topic 7 concept b'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 14', type: 'article', keywords: ['topic 7 keyword 14', 'topic 7 concept c'], intent: 'informational' },
+            { title: 'Topic 7 · Article 15', type: 'article', keywords: ['topic 7 keyword 15', 'topic 7 concept a'], intent: 'informational' },
+            { title: 'Topic 7 · Article 16', type: 'article', keywords: ['topic 7 keyword 16', 'topic 7 concept b'], intent: 'informational' },
+            { title: 'Topic 7 · Article 17', type: 'article', keywords: ['topic 7 keyword 17', 'topic 7 concept c'], intent: 'commercial' },
+            { title: 'Topic 7 · Article 18', type: 'article', keywords: ['topic 7 keyword 18', 'topic 7 concept a'], intent: 'informational' },
+            { title: 'Topic 7 · Article 19', type: 'article', keywords: ['topic 7 keyword 19', 'topic 7 concept b'], intent: 'informational' },
+            { title: 'Topic 7 · Article 20', type: 'article', keywords: ['topic 7 keyword 20', 'topic 7 concept c'], intent: 'informational' }
+        ]
+    },
+    {
+        id: 'topic-8',
+        name: 'Topic 8',
+        color: '#9DC729',
+        role: 'cluster-group-b',
+        roleLabel: 'Cluster B',
+        position: { x: 120, y: -140 },
+        articles: [
+            { title: 'Topic 8: Complete Guide', type: 'pillar', keywords: ['topic 8', 'topic 8 overview'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 1', type: 'article', keywords: ['topic 8 keyword 1', 'topic 8 concept b'], intent: 'informational' },
+            { title: 'Topic 8 · Article 2', type: 'article', keywords: ['topic 8 keyword 2', 'topic 8 concept c'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 3', type: 'article', keywords: ['topic 8 keyword 3', 'topic 8 concept a'], intent: 'informational' },
+            { title: 'Topic 8 · Article 4', type: 'article', keywords: ['topic 8 keyword 4', 'topic 8 concept b'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 5', type: 'article', keywords: ['topic 8 keyword 5', 'topic 8 concept c'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 6', type: 'article', keywords: ['topic 8 keyword 6', 'topic 8 concept a'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 7', type: 'article', keywords: ['topic 8 keyword 7', 'topic 8 concept b'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 8', type: 'article', keywords: ['topic 8 keyword 8', 'topic 8 concept c'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 9', type: 'article', keywords: ['topic 8 keyword 9', 'topic 8 concept a'], intent: 'informational' },
+            { title: 'Topic 8 · Article 10', type: 'article', keywords: ['topic 8 keyword 10', 'topic 8 concept b'], intent: 'informational' },
+            { title: 'Topic 8 · Article 11', type: 'article', keywords: ['topic 8 keyword 11', 'topic 8 concept c'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 12', type: 'article', keywords: ['topic 8 keyword 12', 'topic 8 concept a'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 13', type: 'article', keywords: ['topic 8 keyword 13', 'topic 8 concept b'], intent: 'informational' },
+            { title: 'Topic 8 · Article 14', type: 'article', keywords: ['topic 8 keyword 14', 'topic 8 concept c'], intent: 'informational' },
+            { title: 'Topic 8 · Article 15', type: 'article', keywords: ['topic 8 keyword 15', 'topic 8 concept a'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 16', type: 'article', keywords: ['topic 8 keyword 16', 'topic 8 concept b'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 17', type: 'article', keywords: ['topic 8 keyword 17', 'topic 8 concept c'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 18', type: 'article', keywords: ['topic 8 keyword 18', 'topic 8 concept a'], intent: 'commercial' },
+            { title: 'Topic 8 · Article 19', type: 'article', keywords: ['topic 8 keyword 19', 'topic 8 concept b'], intent: 'informational' },
+            { title: 'Topic 8 · Article 20', type: 'article', keywords: ['topic 8 keyword 20', 'topic 8 concept c'], intent: 'commercial' }
+        ]
+    }
+];
+
+const ROLE_COLORS = { 'semantic-center': '#8F3B23', 'category-hub': '#DE7356', 'cluster-group-a': '#F2A78C', 'cluster-group-b': '#FAD8CB' };
+const ROLE_LABELS = { 'semantic-center': 'Centre', 'category-hub': 'Hub', 'cluster-group-a': 'Cluster A', 'cluster-group-b': 'Cluster B' };
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const plot = document.getElementById('plot');
+const readEl = document.getElementById('read');
+const countEl = document.getElementById('count');
+
+let width, height, centerX, centerY;
+let scale = 1, offsetX = 0, offsetY = 0;
+let isDragging = false, lastX, lastY;
+let hoveredNode = null;
+let activeFilters = new Set(pillars.map(p => p.id));
+let typeFilt = 'all';
+let showLabels = true, showBridges = true, showZones = true, highlightCenter = true;
+let nodeSize = 6, clusterSpread = 100;
+let searchTerm = '';
+let nodes = [];
+
+function initializeNodes() {
+    nodes = [];
+    pillars.forEach(pillar => {
+        const baseX = pillar.position.x;
+        const baseY = pillar.position.y;
+        const count = pillar.articles.length;
+        const isCenter = pillar.role === 'semantic-center';
+
+        pillar.articles.forEach((article, i) => {
+            let x, y;
+            if (article.type === 'pillar') {
+                x = baseX;
+                y = baseY;
+            } else {
+                const angle = ((i - 1) / (count - 1)) * Math.PI * 2 + Math.random() * 0.3;
+                const ring = Math.floor((i - 1) / 7);
+                const baseD = isCenter ? 50 + ring * 20 : 40 + ring * 22;
+                const d = baseD + (Math.random() - 0.5) * 18;
+                x = baseX + Math.cos(angle) * d + (Math.random() - 0.5) * 12;
+                y = baseY + Math.sin(angle) * d + (Math.random() - 0.5) * 12;
+            }
+            nodes.push({
+                x, y, baseX: x, baseY: y,
+                title: article.title,
+                type: article.type,
+                pillar: pillar.name,
+                pillarId: pillar.id,
+                color: pillar.color,
+                role: pillar.role,
+                roleLabel: pillar.roleLabel,
+                keywords: article.keywords,
+                intent: article.intent
+            });
+        });
+    });
+}
+
+function isVisible(node) {
+    if (!activeFilters.has(node.pillarId)) return false;
+    if (typeFilt !== 'all' && node.type !== typeFilt) return false;
+    return true;
+}
+
+function matches(node) {
+    return !searchTerm ||
+        node.title.toLowerCase().includes(searchTerm) ||
+        node.keywords.some(k => k.toLowerCase().includes(searchTerm));
+}
+
+function resize() {
+    width = plot.clientWidth;
+    height = Math.max(380, Math.min(600, Math.round(window.innerHeight * 0.62)));
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    centerX = width / 2;
+    centerY = height / 2;
+    draw();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(centerX + offsetX, centerY + offsetY);
+    ctx.scale(scale, scale);
+
+    if (showZones) drawZones();
+    if (highlightCenter) drawCenterHighlight();
+    if (showBridges) drawBridges();
+    drawNodes();
+    if (showLabels && scale > 0.45) drawLabels();
+
+    ctx.restore();
+    updateCount();
+}
+
+function updateCount() {
+    const shown = nodes.filter(n => isVisible(n) && matches(n)).length;
+    countEl.textContent = shown + ' of ' + nodes.length + ' nodes';
+}
+
+function drawZones() {
+    const spread = clusterSpread / 100;
+    pillars.forEach(pillar => {
+        if (!activeFilters.has(pillar.id)) return;
+        const x = pillar.position.x * spread;
+        const y = pillar.position.y * spread;
+        const isCenter = pillar.role === 'semantic-center';
+        const radius = isCenter ? 110 : 95;
+
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, radius * spread);
+        grad.addColorStop(0, `${pillar.color}24`);
+        grad.addColorStop(0.6, `${pillar.color}0d`);
+        grad.addColorStop(1, `${pillar.color}00`);
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius * spread, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+    });
+}
+
+function drawCenterHighlight() {
+    const center = pillars.find(p => p.role === 'semantic-center');
+    if (!center || !activeFilters.has(center.id)) return;
+    const spread = clusterSpread / 100;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 130 * spread, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(143,59,35,.30)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    pillars.forEach(p => {
+        if (p.role === 'semantic-center' || !activeFilters.has(p.id)) return;
+        ctx.strokeStyle = 'rgba(143,59,35,.16)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(p.position.x * spread * 0.6, p.position.y * spread * 0.6);
+        ctx.stroke();
+    });
+}
+
+function drawBridges() {
+    const spread = clusterSpread / 100;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+
+    const hub = pillars.find(p => p.id === 'topic-2');
+    if (activeFilters.has(hub.id)) {
+        ['topic-7', 'topic-8'].forEach(id => {
+            const p = pillars.find(x => x.id === id);
+            if (!activeFilters.has(p.id)) return;
+            ctx.strokeStyle = `${hub.color}70`;
+            ctx.beginPath();
+            ctx.moveTo(hub.position.x * spread, hub.position.y * spread);
+            ctx.lineTo(p.position.x * spread, p.position.y * spread);
+            ctx.stroke();
+        });
+    }
+
+    const ops = ['topic-3', 'topic-5', 'topic-6', 'topic-4'];
+    for (let i = 0; i < ops.length; i++) {
+        const from = pillars.find(p => p.id === ops[i]);
+        const to = pillars.find(p => p.id === ops[(i + 1) % ops.length]);
+        if (!activeFilters.has(from.id) || !activeFilters.has(to.id)) continue;
+
+        const grad = ctx.createLinearGradient(
+            from.position.x * spread, from.position.y * spread,
+            to.position.x * spread, to.position.y * spread
+        );
+        grad.addColorStop(0, `${from.color}80`);
+        grad.addColorStop(1, `${to.color}80`);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(from.position.x * spread, from.position.y * spread);
+        ctx.lineTo(to.position.x * spread, to.position.y * spread);
+        ctx.stroke();
+    }
+
+    const bdc = pillars.find(p => p.id === 'topic-7');
+    const sales = pillars.find(p => p.id === 'topic-8');
+    if (activeFilters.has(bdc.id) && activeFilters.has(sales.id)) {
+        const grad = ctx.createLinearGradient(
+            bdc.position.x * spread, bdc.position.y * spread,
+            sales.position.x * spread, sales.position.y * spread
+        );
+        grad.addColorStop(0, `${bdc.color}90`);
+        grad.addColorStop(1, `${sales.color}90`);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(bdc.position.x * spread, bdc.position.y * spread);
+        ctx.lineTo(sales.position.x * spread, sales.position.y * spread);
+        ctx.stroke();
+    }
+
+    ctx.setLineDash([]);
+}
+
+function drawNodes() {
+    const spread = clusterSpread / 100;
+    nodes.forEach(node => {
+        if (!isVisible(node)) return;
+
+        const match = matches(node);
+        const x = node.baseX * spread;
+        const y = node.baseY * spread;
+        node.x = x;
+        node.y = y;
+
+        const isCenter = node.role === 'semantic-center';
+        const size = node.type === 'pillar' ? (isCenter ? nodeSize * 2.2 : nodeSize * 1.7) : nodeSize;
+        const isHovered = hoveredNode === node;
+        const drawSize = isHovered ? size * 1.35 : size;
+        const alpha = match ? 1 : 0.16;
+
+        if (isCenter && node.type === 'pillar') {
+            ctx.globalAlpha = alpha * 0.22;
+            ctx.beginPath();
+            ctx.arc(x, y, drawSize + 14, 0, Math.PI * 2);
+            ctx.fillStyle = node.color;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(x, y, drawSize, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.fill();
+
+        if (node.type === 'pillar') {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = isCenter ? 2.5 : 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x, y, drawSize + (isCenter ? 1.6 : 1.2), 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(46,26,20,.30)';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+        } else {
+            ctx.strokeStyle = isHovered ? '#2E1A14' : 'rgba(46,26,20,.28)';
+            ctx.lineWidth = isHovered ? 1.6 : 0.6;
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    });
+}
+
+function drawLabels() {
+    const spread = clusterSpread / 100;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+
+    nodes.forEach(node => {
+        if (!activeFilters.has(node.pillarId) || node.type !== 'pillar') return;
+        if (typeFilt === 'article') return;
+
+        const x = node.baseX * spread;
+        const y = node.baseY * spread;
+        const isCenter = node.role === 'semantic-center';
+        const yOffset = (isCenter ? nodeSize * 2.5 : nodeSize * 2) + 6;
+
+        ctx.font = `600 ${isCenter ? 11 : 9.5}px 'Inter', system-ui, sans-serif`;
+        const label = node.pillar;
+        const w = ctx.measureText(label).width;
+
+        ctx.beginPath();
+        ctx.roundRect(x - w / 2 - 6, y + yOffset - 3, w + 12, 15, 5);
+        ctx.fillStyle = 'rgba(255,255,255,.92)';
+        ctx.fill();
+        ctx.strokeStyle = '#F4DFD6';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = isCenter ? '#8F3B23' : (node.role === 'category-hub' ? '#DE7356' : '#2E1A14');
+        ctx.fillText(label, x, y + yOffset);
+    });
+}
+
+function getNodeAtPosition(mx, my) {
+    const spread = clusterSpread / 100;
+    const x = (mx - centerX - offsetX) / scale;
+    const y = (my - centerY - offsetY) / scale;
+
+    for (let i = nodes.length - 1; i >= 0; i--) {
+        const node = nodes[i];
+        if (!isVisible(node)) continue;
+        const nx = node.baseX * spread;
+        const ny = node.baseY * spread;
+        const isCenter = node.role === 'semantic-center';
+        const size = node.type === 'pillar' ? (isCenter ? nodeSize * 2.2 : nodeSize * 1.7) : nodeSize;
+        if (Math.sqrt((x - nx) ** 2 + (y - ny) ** 2) < size + 4) return node;
+    }
+    return null;
+}
+
+function showRead(node) {
+    readEl.innerHTML =
+        `<div class="u">${node.title}</div>` +
+        `<div class="r"><span>Cluster</span><b>${node.pillar}</b></div>` +
+        `<div class="r"><span>Type</span><b>${node.type === 'pillar' ? 'Pillar' : 'Article'}</b></div>` +
+        `<div class="r"><span>Role tier</span><b>${ROLE_LABELS[node.role]}</b></div>` +
+        `<div class="r"><span>Intent</span><b>${node.intent}</b></div>` +
+        `<div class="r"><span>Keywords</span><b>${node.keywords.join(', ')}</b></div>`;
+    readEl.style.display = 'block';
+}
+
+canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; canvas.style.cursor = 'grabbing'; });
+canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    if (isDragging) {
+        offsetX += e.clientX - lastX;
+        offsetY += e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        draw();
+    } else {
+        const node = getNodeAtPosition(e.clientX - rect.left, e.clientY - rect.top);
+        if (node !== hoveredNode) {
+            hoveredNode = node;
+            draw();
+            if (node) showRead(node); else readEl.style.display = 'none';
+        }
+    }
+});
+canvas.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+canvas.addEventListener('mouseleave', () => { isDragging = false; canvas.style.cursor = 'grab'; hoveredNode = null; readEl.style.display = 'none'; draw(); });
+canvas.addEventListener('wheel', e => { e.preventDefault(); scale = Math.max(0.2, Math.min(4, scale * (e.deltaY > 0 ? 0.9 : 1.1))); draw(); }, { passive: false });
+
+// Cluster cards double as the pillar filter
+const cardWrap = document.getElementById('topicCards');
+pillars.forEach(pillar => {
+    const share = Math.round((pillar.articles.length / 168) * 100);
+    const roleColor = ROLE_COLORS[pillar.role];
+    const card = document.createElement('div');
+    card.className = 'scard active';
+    card.style.setProperty('--sc', pillar.color);
+    card.innerHTML =
+        `<div class="stop"><span class="tag${pillar.role === 'cluster-group-b' ? ' light' : ''}" style="background:${roleColor}">${pillar.name.toUpperCase()}</span><span class="pct">${share}%</span></div>` +
+        `<div class="snum">${pillar.articles.length}<span> nodes</span></div>` +
+        `<div class="sdesc">${pillar.roleLabel} &middot; 1 pillar &middot; ${pillar.articles.length - 1} articles</div>` +
+        `<div class="sbar"><span style="width:${share}%;background:${pillar.color}"></span></div>`;
+    card.addEventListener('click', () => {
+        if (activeFilters.has(pillar.id)) { activeFilters.delete(pillar.id); card.classList.remove('active'); card.classList.add('dim'); }
+        else { activeFilters.add(pillar.id); card.classList.add('active'); card.classList.remove('dim'); }
+        draw();
+    });
+    cardWrap.appendChild(card);
+});
+
+// Topic colour key
+document.getElementById('sublegend').innerHTML = pillars.map(p =>
+    `<span class="sw"><span class="c" style="background:${p.color}"></span>${p.name}</span>`).join('');
+
+// Role-tier scale ticks
+const track = document.getElementById('track');
+[['Centre', 0], ['Hub', 34], ['Cluster A', 67], ['Cluster B', 100]].forEach(([label, pos]) => {
+    const tk = document.createElement('div');
+    tk.className = 'tk';
+    tk.style.top = pos + '%';
+    tk.textContent = label;
+    track.appendChild(tk);
+});
+
+function setFilt(f) {
+    typeFilt = f;
+    document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+    draw();
+}
+function tglLabels() { showLabels = !showLabels; const b = document.getElementById('bLabels'); b.classList.toggle('on', showLabels); b.textContent = 'Labels: ' + (showLabels ? 'on' : 'off'); draw(); }
+function tglBridges() { showBridges = !showBridges; const b = document.getElementById('bBridges'); b.classList.toggle('on', showBridges); b.textContent = 'Bridges: ' + (showBridges ? 'on' : 'off'); draw(); }
+function tglZones() { showZones = !showZones; const b = document.getElementById('bZones'); b.classList.toggle('on', showZones); b.textContent = 'Zones: ' + (showZones ? 'on' : 'off'); draw(); }
+function tglCentre() { highlightCenter = !highlightCenter; const b = document.getElementById('bCentre'); b.classList.toggle('on', highlightCenter); b.textContent = 'Centre ring: ' + (highlightCenter ? 'on' : 'off'); draw(); }
+function resetView() { scale = 1; offsetX = 0; offsetY = 0; draw(); }
+
+function exportCSV() {
+    const rows = [['title', 'cluster', 'type', 'role_tier', 'intent', 'keywords']];
+    nodes.filter(n => isVisible(n) && matches(n)).forEach(n => {
+        rows.push([n.title, n.pillar, n.type, ROLE_LABELS[n.role], n.intent, n.keywords.join('; ')]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'example-topical-map.csv'; a.click();
+    URL.revokeObjectURL(url);
+}
+
+document.getElementById('nodeSize').addEventListener('input', e => { nodeSize = +e.target.value; draw(); });
+document.getElementById('clusterSpread').addEventListener('input', e => { clusterSpread = +e.target.value; draw(); });
+document.getElementById('searchInput').addEventListener('input', e => { searchTerm = e.target.value.toLowerCase(); draw(); });
+
+initializeNodes();
+resize();
+window.addEventListener('resize', resize);
+</script>
+</body></html>
