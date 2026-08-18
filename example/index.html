@@ -418,14 +418,21 @@ function initializeNodes() {
         const lo = pillar.band[0], hi = pillar.band[1];
         pillar.articles.forEach(article => {
             const isHub = article.type === 'pillar';
+            const isCentre = pillar.role === 'semantic-center';
+            // the homepage defines the site centre, so it sits at the origin
+            const isRoot = isHub && isCentre;
             // cosine similarity to the site centre; pages skew to the outer edge of the band
-            const cos = isHub ? hi - (hi - lo) * 0.10 * rnd()
+            const cos = isRoot ? 1
+                      : isHub ? hi - (hi - lo) * 0.10 * rnd()
                               : hi - (hi - lo) * Math.pow(rnd(), 0.62);
             const dist = 1 - cos;
-            // arc length shrinks as you approach the centre, so inner pages fan wider
-            const fan = half * Math.min(2.2, Math.max(1, 0.20 / Math.max(dist, 0.05)));
-            // angle: the hub sits on the cluster axis, its pages spread across the wedge
-            const th = pillar.wedge + (isHub ? (rnd() - 0.5) * fan * 0.3 : (rnd() * 2 - 1) * fan);
+            // the centre cluster rings the origin; outer clusters keep their wedge, fanning
+            // wider as they approach the middle because arc length shrinks with radius
+            const fan = isCentre ? Math.PI
+                                 : half * Math.min(2.2, Math.max(1, 0.20 / Math.max(dist, 0.05)));
+            // angle: the hub sits on the cluster axis, its pages spread across the fan
+            const th = isRoot ? 0
+                     : pillar.wedge + (isHub ? (rnd() - 0.5) * fan * 0.3 : (rnd() * 2 - 1) * fan);
             // synthetic traffic weight, heavy-tailed: a few pages carry most of the clicks
             const clicks = Math.round(100000 * Math.pow(rnd(), isHub ? 1.5 : 5.2));
             maxClicks = Math.max(maxClicks, clicks);
