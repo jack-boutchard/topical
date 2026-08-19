@@ -1,2 +1,3 @@
 User-agent: *
 Disallow: /sintra/
+Disallow: /sintra2/
