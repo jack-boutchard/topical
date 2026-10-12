@@ -3,3 +3,4 @@ Disallow: /sintra/
 Disallow: /sintra2/
 Disallow: /sintra3/
 Disallow: /sintra4/
+Disallow: /gocodes/
